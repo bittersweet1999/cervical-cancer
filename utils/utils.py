@@ -18,6 +18,8 @@ from losses.losses import FocalLoss
 from args import get_args
 from utils.evaluate import compute_confusion_matrix,compute_indexes
 from sklearn.metrics import roc_auc_score
+from models.gate_funs.noisy_gate import NoisyGate
+from models.gate_funs.noisy_gate_vmoe import NoisyGate_VMoE
 
 # from seresnext import se_resnext50_32x4d
 args=get_args()
@@ -233,12 +235,12 @@ def train_one_epoch_multi_longtail_weight(model, optimizer, data_loader, device,
         x = images.to(device)
         B = x.shape[0]
 
-        if args.backbone != 'vit_res':
+        if args.backbone in ('vit','TransMIL'):
             resnet.eval()
             x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3], x.shape[4]))
             features = pre_cls_model(x)
             features = torch.reshape(features, (B, int(features.shape[0] / B), features.shape[1]))
-        elif args.backbone == 'vit_res':
+        elif args.backbone in ('vit_res','vit_moe'):
             features = x
 
 
@@ -316,13 +318,13 @@ def evaluate_multi_longtail_weight(model, data_loader, device, epoch, multi_task
         x = images.to(device)
         
         B = x.shape[0]
-        if args.backbone != 'vit_res':
+        
+        if args.backbone in ('vit','TransMIL'):
             resnet.eval()
-            torch.save(resnet.state_dict(), f'{save_pth}/resnet.pth')
             x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3], x.shape[4]))
             features = pre_cls_model(x)
             features = torch.reshape(features, (B, int(features.shape[0] / B), features.shape[1]))
-        elif args.backbone == 'vit_res':
+        elif args.backbone in ('vit_res','vit_moe'):
             features = x
  
         labels = list(labels.values())
@@ -360,3 +362,357 @@ def evaluate_multi_longtail_weight(model, data_loader, device, epoch, multi_task
         print(err_res)
         
     return np.array(accu_loss) / (step + 1), np.array(accu_num) / sample_num,  errors_lists
+
+
+
+
+def train_one_epoch_multi_moe(model, optimizer, data_loader, device, epoch, multi_tasks,istrain=[True]*args.multi_tasks,cont=False):
+    model.train()
+    
+    # loss_function = torch.nn.BCELoss()#torch.nn.CrossEntropyLoss()
+    loss_functions = args.loss_fns
+    accu_loss = torch.zeros(1).to(device)  # 累计损失
+    accu_num = torch.zeros(1).to(device)  # 累计预测正确的样本数
+    optimizer.zero_grad()
+
+    sample_num = 0
+    data_loader = tqdm(data_loader, file=sys.stdout)
+    accu_num = [0] * multi_tasks
+    accu_loss = [0] * multi_tasks
+    errors_nums = [0] * multi_tasks
+    errors_lists = [ [] for i in range(multi_tasks) ]
+    task_epoch = [1e-8] * multi_tasks
+    task_num = [1e-8] * multi_tasks
+    for step, data in enumerate(data_loader):
+        images, labels = data
+        sample_num += images.shape[0]
+        x = images.to(device)
+        B = x.shape[0]
+
+        if args.backbone in ('vit','TransMIL'):
+            resnet.eval()
+            x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3], x.shape[4]))
+            features = pre_cls_model(x)
+            features = torch.reshape(features, (B, int(features.shape[0] / B), features.shape[1]))
+        elif args.backbone in ('vit_res','vit_moe'):
+            features = x
+        
+        # task_ids= labels['task_id']
+        # print(labels)
+        # print(task_ids)
+        preds = model(features,None)
+        # print(preds.keys(),'sdww')
+        # print(preds[0],preds[0].size())
+        task_id = labels['task_id'].to(device)
+        # index = torch.Tensor((torch.range(0,args.multi_tasks),task_id))
+        task_id_mask = torch.zeros(args.multi_tasks, task_id.shape[0]).to(device)
+        task_id_mask[task_id,range(task_id.shape[0])]=1
+        task_id_mask = task_id_mask.long()
+        # one_hot.scatter_(0,  task_id.reshape(1,-1), 1)
+        # one_hot = one_hot.transpose(0,1)
+        # print(task_id_mask)
+        # print('--'*100)
+    
+        
+        # print(task_id_weight,task_id_weight.size(),preds[0].size(),'wwwwwwwwwwwwwwwwwwwwwww')
+
+        loss_total = 0
+        for i in range(args.multi_tasks):
+            
+            # sb = task_id_mask[i].detach().cpu().sum().item()
+            # print(i,sb,'ww'*50)
+            if not istrain[i] or task_id_mask[i].sum().item() == 0:
+                # print(f' skip {i}')
+                continue
+
+            pred = preds[i].to(device) 
+            label = labels[f'label_{i}'].to(device) 
+            pred = pred[task_id_mask[i]==1]
+            label = label[task_id_mask[i]==1]
+            
+            loss_function = get_lossfn(loss_functions[i],use_reduction=True)
+            loss = loss_function(pred,label)
+            if args.reduction == 'none':
+                loss = loss.mean()
+            
+            pred_classes = torch.max(torch.softmax(pred, dim=1), dim=1)[1]
+            accu_num[i] += torch.eq(pred_classes, label.to(device)).sum().item()
+            
+            accu_loss[i] += loss.detach().item()
+            task_epoch[i] += 1
+            task_num[i] += task_id_mask[i].sum().item()
+            
+            loss_total +=loss
+        loss_noisy = collect_noisy_gating_loss(model,weight=0.01)
+        loss_total+=loss_noisy
+        loss_total.backward()
+        # print(task_num,accu_num)
+        # s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,acc_l/ (step + 1),i,acc_n/ sample_num) for i,(acc_l,acc_n) in enumerate(zip(accu_loss,accu_num))])
+        s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,accu_loss[i]/ (task_epoch[i]),i,accu_num[i]/ task_num[i]) for i in args.show_tasks])
+ 
+        s_desc = f'[train epoch {epoch}] '+ s 
+
+        data_loader.desc = s_desc
+
+        if not torch.isfinite(loss_total):
+            print('WARNING: non-finite loss, ending training ', loss_total)
+            sys.exit(1)
+
+        optimizer.step()
+        optimizer.zero_grad()
+    
+        #print(f' total errors :{errors_nums[1]} ,{len(errors_lists[1])}')
+    return np.array(accu_loss) / (step + 1), np.array(accu_num) / sample_num, errors_lists
+
+
+
+
+@torch.no_grad()
+def evaluate_multi_moe(model, data_loader, device, epoch, multi_tasks,name='valid',cont=False):
+    loss_function = torch.nn.CrossEntropyLoss()
+
+    model.eval()
+    accu_num = torch.zeros(1).to(device)  # 累计预测正确的样本数
+    accu_loss = torch.zeros(1).to(device)  # 累计损失
+    zhenyin = 0
+    gjb = 0
+    sample_num = 0
+    louzhen = 0
+    data_loader = tqdm(data_loader, file=sys.stdout)
+    accu_loss = [0] * multi_tasks
+    accu_num = [0] * multi_tasks
+    loss_functions = args.loss_fns
+    errors_nums = [0] * multi_tasks
+    errors_lists = [ [] for i in range(multi_tasks) ]
+
+    for step, data in enumerate(data_loader):
+        
+        images, labels = data
+        sample_num += images.shape[0]
+        
+        x = images.to(device)
+        
+        B = x.shape[0]
+        
+        if args.backbone in ('vit','TransMIL'):
+            resnet.eval()
+            x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3], x.shape[4]))
+            features = pre_cls_model(x)
+            features = torch.reshape(features, (B, int(features.shape[0] / B), features.shape[1]))
+        elif args.backbone in ('vit_res','vit_moe'):
+            features = x
+ 
+
+        preds = model(features,None)
+              
+        loss_total = 0
+        for i in range(args.multi_tasks):
+    
+            pred = preds[i].to(device)
+            label = labels[f'label_{i}'].to(device) 
+           
+            loss_function = get_lossfn(loss_functions[i],use_reduction=False)
+            loss = loss_function(pred,label)
+            if args.reduction == 'none':
+                loss = loss.mean()
+            
+            pred_classes = torch.max(torch.softmax(pred, dim=1), dim=1)[1]
+            # print(pred_classes,label,loss,pred)
+            accu_num[i] += torch.eq(pred_classes, label.to(device)).sum().item()
+            
+            accu_loss[i] += loss.detach().item()
+            loss_total +=loss
+        loss_noisy = collect_noisy_gating_loss(model,weight=0.01)
+        loss_total+=loss_noisy
+        # print(accu_loss,accu_num)
+
+        # s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,acc_l/ (step + 1),i,acc_n/ sample_num) for i,(acc_l,acc_n) in enumerate(zip(accu_loss,accu_num))])
+        s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,accu_loss[i]/ (step + 1),i,accu_num[i]/ sample_num) for i in args.show_tasks])
+        s_desc = f'[{name} epoch {epoch}] '+ s
+
+        data_loader.desc = s_desc
+
+        
+    return np.array(accu_loss) / (step + 1), np.array(accu_num) / sample_num,  errors_lists
+
+
+
+
+
+def train_one_epoch_multi_moe_dis(model, optimizer, data_loader, local_rank, epoch, multi_tasks,istrain=[True]*args.multi_tasks,cont=False):
+    model.train()
+    
+    # loss_function = torch.nn.BCELoss()#torch.nn.CrossEntropyLoss()
+    loss_functions = args.loss_fns
+    accu_loss = torch.zeros(1).to(local_rank)  # 累计损失
+    accu_num = torch.zeros(1).to(local_rank)  # 累计预测正确的样本数
+    optimizer.zero_grad()
+
+    sample_num = 0
+    data_loader = tqdm(data_loader, file=sys.stdout)
+    accu_num = [0] * multi_tasks
+    accu_loss = [0] * multi_tasks
+    errors_nums = [0] * multi_tasks
+    errors_lists = [ [] for i in range(multi_tasks) ]
+    task_epoch = [1e-8] * multi_tasks
+    task_num = [1e-8] * multi_tasks
+    for step, data in enumerate(data_loader):
+        images, labels = data
+        sample_num += images.shape[0]
+        x = images.cuda(local_rank)
+        B = x.shape[0]
+
+        if args.backbone in ('vit','TransMIL'):
+            resnet.eval()
+            x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3], x.shape[4]))
+            features = pre_cls_model(x)
+            features = torch.reshape(features, (B, int(features.shape[0] / B), features.shape[1]))
+        elif args.backbone in ('vit_res','vit_moe'):
+            features = x
+        
+        # task_ids= labels['task_id']
+        # print(labels)
+        # print(task_ids)
+        preds = model(features,None)
+        # print(preds.keys(),'sdww')
+        # print(preds[0],preds[0].size())
+        task_id = labels['task_id'].cuda(local_rank)
+        # index = torch.Tensor((torch.range(0,args.multi_tasks),task_id))
+        task_id_mask = torch.zeros(args.multi_tasks, task_id.shape[0]).cuda(local_rank)
+        task_id_mask[task_id,range(task_id.shape[0])]=1
+        task_id_mask = task_id_mask.long()
+        # one_hot.scatter_(0,  task_id.reshape(1,-1), 1)
+        # one_hot = one_hot.transpose(0,1)
+        # print(task_id_mask)
+        # print('--'*100)
+    
+        
+        # print(task_id_weight,task_id_weight.size(),preds[0].size(),'wwwwwwwwwwwwwwwwwwwwwww')
+
+        loss_total = 0
+        for i in range(args.multi_tasks):
+            
+            # sb = task_id_mask[i].detach().cpu().sum().item()
+            # print(i,sb,'ww'*50)
+            if not istrain[i] or task_id_mask[i].sum().item() == 0:
+                # print(f' skip {i}')
+                continue
+
+            pred = preds[i].cuda(local_rank) 
+            label = labels[f'label_{i}'].cuda(local_rank) 
+            pred = pred[task_id_mask[i]==1]
+            label = label[task_id_mask[i]==1]
+            
+            loss_function = get_lossfn(loss_functions[i],use_reduction=True)
+            loss = loss_function(pred,label)
+            if args.reduction == 'none':
+                loss = loss.mean()
+            
+            pred_classes = torch.max(torch.softmax(pred, dim=1), dim=1)[1]
+            accu_num[i] += torch.eq(pred_classes, label.cuda(local_rank)).sum().item()
+            
+            accu_loss[i] += loss.detach().item()
+            task_epoch[i] += 1
+            task_num[i] += task_id_mask[i].sum().item()
+            
+            loss_total +=loss
+        loss_noisy = collect_noisy_gating_loss(model,weight=0.01)
+        loss_total+=loss_noisy
+        loss_total.backward()
+        # print(task_num,accu_num)
+        # s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,acc_l/ (step + 1),i,acc_n/ sample_num) for i,(acc_l,acc_n) in enumerate(zip(accu_loss,accu_num))])
+        s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,accu_loss[i]/ (task_epoch[i]),i,accu_num[i]/ task_num[i]) for i in args.show_tasks])
+ 
+        s_desc = f'[train epoch {epoch}] '+ s 
+
+        data_loader.desc = s_desc
+
+        if not torch.isfinite(loss_total):
+            print('WARNING: non-finite loss, ending training ', loss_total)
+            sys.exit(1)
+
+        optimizer.step()
+        optimizer.zero_grad()
+    
+        #print(f' total errors :{errors_nums[1]} ,{len(errors_lists[1])}')
+    return np.array(accu_loss) / (step + 1), np.array(accu_num) / sample_num, errors_lists
+
+
+
+
+@torch.no_grad()
+def evaluate_multi_moe_dis(model, data_loader, local_rank, epoch, multi_tasks,name='valid',cont=False):
+    loss_function = torch.nn.CrossEntropyLoss()
+
+    model.eval()
+
+    zhenyin = 0
+    gjb = 0
+    sample_num = 0
+    louzhen = 0
+    data_loader = tqdm(data_loader, file=sys.stdout)
+    accu_loss = [0] * multi_tasks
+    accu_num = [0] * multi_tasks
+    loss_functions = args.loss_fns
+    errors_nums = [0] * multi_tasks
+    errors_lists = [ [] for i in range(multi_tasks) ]
+
+    for step, data in enumerate(data_loader):
+        
+        images, labels = data
+        sample_num += images.shape[0]
+        
+        x = images.cuda(local_rank)
+        
+        B = x.shape[0]
+        
+        if args.backbone in ('vit','TransMIL'):
+            resnet.eval()
+            x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3], x.shape[4]))
+            features = pre_cls_model(x)
+            features = torch.reshape(features, (B, int(features.shape[0] / B), features.shape[1]))
+        elif args.backbone in ('vit_res','vit_moe'):
+            features = x
+ 
+
+        preds = model(features,None)
+              
+        loss_total = 0
+        for i in range(args.multi_tasks):
+    
+            pred = preds[i].cuda(local_rank)
+            label = labels[f'label_{i}'].cuda(local_rank) 
+           
+            loss_function = get_lossfn(loss_functions[i],use_reduction=False)
+            loss = loss_function(pred,label)
+            if args.reduction == 'none':
+                loss = loss.mean()
+            
+            pred_classes = torch.max(torch.softmax(pred, dim=1), dim=1)[1]
+            # print(pred_classes,label,loss,pred)
+            accu_num[i] += torch.eq(pred_classes, label.to(local_rank)).sum().item()
+            
+            accu_loss[i] += loss.detach().item()
+            loss_total +=loss
+        loss_noisy = collect_noisy_gating_loss(model,weight=0.01)
+        loss_total+=loss_noisy
+        # print(accu_loss,accu_num)
+
+        # s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,acc_l/ (step + 1),i,acc_n/ sample_num) for i,(acc_l,acc_n) in enumerate(zip(accu_loss,accu_num))])
+        s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,accu_loss[i]/ (step + 1),i,accu_num[i]/ sample_num) for i in args.show_tasks])
+        s_desc = f'[{name} epoch {epoch}] '+ s
+
+        data_loader.desc = s_desc
+
+        
+    return np.array(accu_loss) / (step + 1), np.array(accu_num) / sample_num,  errors_lists
+
+
+
+def collect_noisy_gating_loss(model, weight):
+    loss = 0
+    for module in model.modules():
+        if (isinstance(module, NoisyGate) or isinstance(module, NoisyGate_VMoE)) and module.has_loss:
+            # print(module)
+            loss += module.get_loss()
+    return loss * weight
