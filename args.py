@@ -51,7 +51,7 @@ parser.add_argument('--logdir',required=True,help='dir to save error log')
 parser.add_argument('--depth',type=int,default=12)
 parser.add_argument('--gate-dim',type=int,default=None)
 parser.add_argument('--num_experts_pertask',type=int,default=-1)
-parser.add_argument("--local-rank", help="local device id on current node",type=int,default=None)
+parser.add_argument("--local-rank","--local_rank", help="local device id on current node",type=int,default=None)
 
 
 def init_args(args):
