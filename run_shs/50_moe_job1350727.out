@@ -1,0 +1,3 @@
+bme_gpu18
+start on Thu Dec 21 10:18:47 CST 2023
+slurmstepd: error: *** JOB 1350727 ON bme_gpu18 CANCELLED AT 2023-12-21T13:18:48 DUE TO TIME LIMIT ***

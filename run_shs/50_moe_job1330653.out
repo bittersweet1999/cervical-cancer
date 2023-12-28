@@ -1,0 +1,155 @@
+bme_gpu19
+start on Sun Dec 17 20:45:56 CST 2023
+/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/launch.py:181: FutureWarning: The module torch.distributed.launch is deprecated
+and will be removed in future. Use torchrun.
+Note that --use-env is set by default in torchrun.
+If your script expects `--local-rank` argument to be set, please
+change it to read from `os.environ['LOCAL_RANK']` instead. See 
+https://pytorch.org/docs/stable/distributed.html#launch-utility for 
+further instructions
+
+  warnings.warn(
+[2023-12-17 20:45:59,467] torch.distributed.run: [WARNING] 
+[2023-12-17 20:45:59,467] torch.distributed.run: [WARNING] *****************************************
+[2023-12-17 20:45:59,467] torch.distributed.run: [WARNING] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+[2023-12-17 20:45:59,467] torch.distributed.run: [WARNING] *****************************************
+[0, 1, 2, 3, 4, 5] wdada
+[0, 1, 2, 3, 4, 5] wdada
+[0, 1, 2, 3, 4, 5] wdada
+[0, 1, 2, 3, 4, 5] wdada
+[0, 1, 2, 3, 4, 5] wdada[0, 1, 2, 3, 4, 5]
+ wdada
+Namespace(epochs=300, batch_size=16, lr=0.0001, lr_res=0.0001, lrf=0.1, lr_head=[0.0003, 0.0003, 0.0003, 0.0003, 0.0003, 0.0003], loss_weights=[10.0, 10.0, 10.0, 10.0, 10.0, 10.0], weights='', freeze_layers=False, device='cuda:0', where='/public/home/jianght2023/50_pths_moe', base_path='/public_bme/data/jianght/datas/Pathology/class2', train_csv='/public_bme/data/jianght/datas/Pathology/class2/select_train.csv', valid_csv='/public_bme/data/jianght/datas/Pathology/class2/total_test2.csv', positive_csv='/public_bme/data/jianght/datas/Pathology/class2/total_pos_supp_yang.csv', negative_csv='/public_bme/data/jianght/datas/Pathology/class2/test.csv', head_idx=None, img_batch=50, arch='resnet101', res_weights='/public/home/jianght2023/pths2/resnet2/resnet.pth', res_savedir='/public/home/jianght2023/pths_resnet/50_0gong_lt_res50', multi_tasks=6, num_classes=[2, 3, 4, 2, 2, 2], loss_fns=['CELoss', 'CELoss', 'CELoss', 'CELoss', 'CELoss', 'CELoss'], tasks=['label', 'label', 'label', 'label', 'label', 'label'], long_tails=[False, False, False, False, False, False], alpha=[0.2, 0.2, 0.2, 0.2, 0.2, 0.2], cont=True, show_tasks=[0, 1, 2, 3, 4, 5], needpatch=False, backbone='vit_moe', reduction='none', logdir='weight1_ttt.txt', depth=12, gate_dim=None, num_experts_pertask=-1, local_rank=1, task_id=[0, 1, 2, 3, 4, 5])
+Namespace(epochs=300, batch_size=16, lr=0.0001, lr_res=0.0001, lrf=0.1, lr_head=[0.0003, 0.0003, 0.0003, 0.0003, 0.0003, 0.0003], loss_weights=[10.0, 10.0, 10.0, 10.0, 10.0, 10.0], weights='', freeze_layers=False, device='cuda:0', where='/public/home/jianght2023/50_pths_moe', base_path='/public_bme/data/jianght/datas/Pathology/class2', train_csv='/public_bme/data/jianght/datas/Pathology/class2/select_train.csv', valid_csv='/public_bme/data/jianght/datas/Pathology/class2/total_test2.csv', positive_csv='/public_bme/data/jianght/datas/Pathology/class2/total_pos_supp_yang.csv', negative_csv='/public_bme/data/jianght/datas/Pathology/class2/test.csv', head_idx=None, img_batch=50, arch='resnet101', res_weights='/public/home/jianght2023/pths2/resnet2/resnet.pth', res_savedir='/public/home/jianght2023/pths_resnet/50_0gong_lt_res50', multi_tasks=6, num_classes=[2, 3, 4, 2, 2, 2], loss_fns=['CELoss', 'CELoss', 'CELoss', 'CELoss', 'CELoss', 'CELoss'], tasks=['label', 'label', 'label', 'label', 'label', 'label'], long_tails=[False, False, False, False, False, False], alpha=[0.2, 0.2, 0.2, 0.2, 0.2, 0.2], cont=True, show_tasks=[0, 1, 2, 3, 4, 5], needpatch=False, backbone='vit_moe', reduction='none', logdir='weight1_ttt.txt', depth=12, gate_dim=None, num_experts_pertask=-1, local_rank=0, task_id=[0, 1, 2, 3, 4, 5])
+1
+----------------------------------------------------------------------------------------------------
+0
+----------------------------------------------------------------------------------------------------
+['label', 'highlabel', 'degree', 'fungus', 'cluecell', 'microbe']
+['label', 'highlabel', 'degree', 'fungus', 'cluecell', 'microbe']
+['label', 'highlabel', 'degree', 'fungus', 'cluecell', 'microbe']
+['label', 'highlabel', 'degree', 'fungus', 'cluecell', 'microbe']
+42744 9099
+Using 8 dataloader workers every process
+42744 9099
+Using 8 dataloader workers every process
+/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet101_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet101_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet101_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet101_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+Downloading: "https://download.pytorch.org/models/resnet101-63fe2227.pth" to /home_data/home/jianght2023/.cache/torch/hub/checkpoints/resnet101-63fe2227.pth
+Downloading: "https://download.pytorch.org/models/resnet101-63fe2227.pth" to /home_data/home/jianght2023/.cache/torch/hub/checkpoints/resnet101-63fe2227.pth
+Traceback (most recent call last):
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/urllib/request.py", line 1348, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/http/client.py", line 1286, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/http/client.py", line 1332, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/http/client.py", line 1281, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/http/client.py", line 1041, in _send_output
+    self.send(msg)
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/http/client.py", line 979, in send
+    self.connect()
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/http/client.py", line 1451, in connect
+    super().connect()
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/http/client.py", line 945, in connect
+    self.sock = self._create_connection(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/socket.py", line 827, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/socket.py", line 962, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home_data/home/jianght2023/projects/cervical-cancer/train_distribute.py", line 288, in <module>
+    main(opt)
+  File "/home_data/home/jianght2023/projects/cervical-cancer/train_distribute.py", line 132, in main
+    model = VitResMoE(embed_dim=512,num_classes=args.num_classes, has_logits=False,multi_tasks=args.multi_tasks,long_tail=args.long_tails,alpha=args.alpha).to(device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/projects/cervical-cancer/models/vit_res_model.py", line 41, in __init__
+    resnet = models.__dict__[args.arch](pretrained=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torchvision/models/_utils.py", line 142, in wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torchvision/models/_utils.py", line 228, in inner_wrapper
+    return builder(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torchvision/models/resnet.py", line 795, in resnet101
+    return _resnet(Bottleneck, [3, 4, 23, 3], weights, progress, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torchvision/models/resnet.py", line 301, in _resnet
+    model.load_state_dict(weights.get_state_dict(progress=progress, check_hash=True))
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torchvision/models/_api.py", line 90, in get_state_dict
+    return load_state_dict_from_url(self.url, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/hub.py", line 766, in load_state_dict_from_url
+    download_url_to_file(url, cached_file, hash_prefix, progress=progress)
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/hub.py", line 620, in download_url_to_file
+    u = urlopen(req)
+        ^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/urllib/request.py", line 216, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/urllib/request.py", line 519, in open
+    response = self._open(req, data)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/urllib/request.py", line 536, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/urllib/request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/urllib/request.py", line 1391, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/urllib/request.py", line 1351, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [Errno -3] Temporary failure in name resolution>
+[2023-12-17 20:46:09,471] torch.distributed.elastic.multiprocessing.api: [WARNING] Sending process 21878 closing signal SIGTERM
+[2023-12-17 20:46:09,693] torch.distributed.elastic.multiprocessing.api: [ERROR] failed (exitcode: 1) local_rank: 1 (pid: 21879) of binary: /home_data/home/jianght2023/miniconda3/envs/pytorch/bin/python
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/launch.py", line 196, in <module>
+    main()
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/launch.py", line 192, in main
+    launch(args)
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/launch.py", line 177, in launch
+    run(args)
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/run.py", line 797, in run
+    elastic_launch(
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/launcher/api.py", line 134, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/launcher/api.py", line 264, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+train_distribute.py FAILED
+------------------------------------------------------------
+Failures:
+  <NO_OTHER_FAILURES>
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2023-12-17_20:46:09
+  host      : bme_gpu19
+  rank      : 1 (local_rank: 1)
+  exitcode  : 1 (pid: 21879)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
+end on Sun Dec 17 20:46:10 CST 2023
