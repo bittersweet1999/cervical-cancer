@@ -20,6 +20,8 @@ from utils.utils import  train_one_epoch_multi_longtail_weight,evaluate_multi_lo
 import pandas as pd
 import random
 import numpy as np
+import os
+os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 def seed_reproducer(seed=2022):
     """Reproducer for pytorch experiment.
 
@@ -66,7 +68,7 @@ def main(args):
 
 
         # 实例化训练数据集
-    train_dataset = MultiDataSetMoE(data=pd.read_csv(args.train_csv),
+    train_dataset = MultiDataSet(data=pd.read_csv(args.valid_csv),
                               #images_class=train_images_label,
                               transforms=data_transform['train'],
                               img_batch=args.img_batch,
@@ -76,7 +78,7 @@ def main(args):
                                  )
     #print(train_dataset)
     # 实例化验证数据集
-    val_dataset = MultiDataSetMoE(data=pd.read_csv(args.valid_csv),
+    val_dataset = MultiDataSet(data=pd.read_csv(args.valid_csv),
                                 #images_class=val_images_label,
                                 transforms=data_transform['val'],
                                 img_batch=args.img_batch,
@@ -84,14 +86,14 @@ def main(args):
                                 tasks=args.tasks,
                                 need_patch=args.needpatch)
     
-    positive_dataset = MultiDataSet(data=pd.read_csv(args.positive_csv),
-                              #images_class=train_images_label,
-                              transforms=data_transform['train'],
-                              img_batch=args.img_batch,
-                              head_idx=args.head_idx,
-                              tasks=args.tasks,
-                              need_patch=args.needpatch
-                                 )
+    # positive_dataset = MultiDataSet(data=pd.read_csv(args.positive_csv),
+    #                           #images_class=train_images_label,
+    #                           transforms=data_transform['train'],
+    #                           img_batch=args.img_batch,
+    #                           head_idx=args.head_idx,
+    #                           tasks=args.tasks,
+    #                           need_patch=args.needpatch
+    #                              )
 
     print(len(train_dataset),len(val_dataset))
     batch_size = args.batch_size
@@ -112,11 +114,11 @@ def main(args):
                                              num_workers=nw,)
                                              #collate_fn=val_dataset.collate_fn)
 
-    positive_loader = torch.utils.data.DataLoader(positive_dataset,
-                                            batch_size=batch_size,
-                                            shuffle=True,
-                                            pin_memory=True,
-                                            num_workers=nw,)
+    # positive_loader = torch.utils.data.DataLoader(positive_dataset,
+    #                                         batch_size=batch_size,
+    #                                         shuffle=True,
+    #                                         pin_memory=True,
+    #                                         num_workers=nw,)
     if args.backbone == 'vit':
         model = create_model(embed_dim=512,num_classes=args.num_classes, has_logits=False,multy_tasks=args.multi_tasks,head_idx=args.head_idx,long_tail=args.long_tails,alpha=args.alpha).to(device)
     elif args.backbone == 'TransMIL':
@@ -166,28 +168,28 @@ def main(args):
 
         # train
 #
-        if args.backbone == 'vit_res':
-            train_loss, train_accs, train_error_list = train_one_epoch_multi_longtail_weight(model=model,
-                                                    optimizer=optimizer,
-                                                    data_loader=train_loader,
-                                                    device=device,
-                                                    epoch=epoch,
-                                                    multi_tasks=args.multi_tasks,
-                                                    istrain = istrain_list,
-                                                    cont=args.cont
-                                                    )
-        elif args.backbone == 'vit_moe':
-                train_loss, train_accs, train_error_list = train_one_epoch_multi_moe(model=model,
-                                            optimizer=optimizer,
-                                            data_loader=train_loader,
-                                            device=device,
-                                            epoch=epoch,
-                                            multi_tasks=args.multi_tasks,
-                                            istrain = istrain_list,
-                                            cont=args.cont
-                                            )
-    #   
-        scheduler.step()
+    #     if args.backbone == 'vit_res':
+    #         train_loss, train_accs, train_error_list = train_one_epoch_multi_longtail_weight(model=model,
+    #                                                 optimizer=optimizer,
+    #                                                 data_loader=train_loader,
+    #                                                 device=device,
+    #                                                 epoch=epoch,
+    #                                                 multi_tasks=args.multi_tasks,
+    #                                                 istrain = istrain_list,
+    #                                                 cont=args.cont
+    #                                                 )
+    #     elif args.backbone == 'vit_moe':
+    #             train_loss, train_accs, train_error_list = train_one_epoch_multi_moe(model=model,
+    #                                         optimizer=optimizer,
+    #                                         data_loader=train_loader,
+    #                                         device=device,
+    #                                         epoch=epoch,
+    #                                         multi_tasks=args.multi_tasks,
+    #                                         istrain = istrain_list,
+    #                                         cont=args.cont
+    #                                         )
+    # #   
+    #     scheduler.step()
 
     #     if args.cont:
     #         train_loss, train_accs, train_error_list = train_res

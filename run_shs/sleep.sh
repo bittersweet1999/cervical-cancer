@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH -p bme_quick
-#SBATCH -J distri
-#SBATCH -t 3:00:00
+#SBATCH -p bme_gpu
+#SBATCH -J sleep
+#SBATCH -t 120:00:00
 #SBATCH -N 1
 #SBATCH -n 8
 #SBATCH --gres=gpu:NVIDIAA10080GBPCIe:2

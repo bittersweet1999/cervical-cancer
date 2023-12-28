@@ -335,6 +335,7 @@ class VisionTransformerMulti_LongTail_MoE(nn.Module):
         self.gate_task_specific_dim = gate_task_specific_dim
         self.gate_input_ahead = gate_input_ahead
         self.expert_prune = expert_prune
+        self.num_tasks = multi_tasks
         
         dpr = [x.item() for x in torch.linspace(0, drop_path_ratio, depth)]  # stochastic depth decay rule
         blocks = []

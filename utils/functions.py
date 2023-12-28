@@ -34,23 +34,27 @@ def calculate_loss(lossfn,pred,label,task_name,loss_weight,reduction,labels,cont
         if cont:
             pred_classes = torch.max(torch.softmax(pred, dim=1), dim=1)[1]
             if isinstance(labels,dict):
-                highlabel = labels['label_1']
+                highlabel = labels['highlabel']
                 code = labels['code']
             elif isinstance(labels,list):
                 highlabel = labels[-1]
                 code = labels[-2]
+                print(highlabel)
+                print(pred_classes,label)
             error = ((highlabel.cpu() == 2) * (pred_classes.cpu() != label.cpu()))
             errors_num = error.sum().item()
             error_name = [code[i] + '\n' for i in range(error.size(0)) if error[i]]
             
     if reduction == 'none':
         if task_name == 'label':
-            multilabel_msk = [ loss_weight if i == 2 else 1 if i == 1  else 0.5 for i in labels[-1] ] # -1: multi_labels -2:belong
+            # print(highlabel)
+            multilabel_msk = [ loss_weight if i == 2 else 1 if i == 1  else 0.5 for i in highlabel ] # -1: multi_labels -2:belong
         else :
-            multilabel_msk = 1
+            multilabel_msk = [1]
         multilabel_weight = torch.Tensor(multilabel_msk).to(loss.device)
         loss = multilabel_weight * loss
         loss = loss.mean()
+        # print(loss,'wwwwwwwwwwwwwwwwwwww',task_name)
 
     return loss,errors_num,error_name
 
@@ -88,6 +92,8 @@ def load_state(args,model):
                 #print(weights_dict['state_dict'].keys())
                 len_clks = weights_dict['state_dict']['model.task_tokens'].shape[1]
                 # del weights_dict['state_dict']['model.heads.0.weight']
+                # del weights_dict['state_dict']['model.heads.1.weight']
+                # del weights_dict['state_dict']['model.heads.1.bias']
                 if args.multi_tasks != len_clks:
                     print(f'multi_tasks is {args.multi_tasks} but the cls is {len_clks}')
                     #fungus_state = torch.load('/public/home/jianght2023/pths_multi_longtail_fungus_0.7/model-None-59.pth')
@@ -104,5 +110,14 @@ def load_state(args,model):
             #model.embed_mean = np.concatenate([model.embed_mean,model.embed_mean[0].reshape(1,-1)])
         else:
             print('without state_dict')
-            print(model.load_state_dict(weights_dict, strict=False))
+            # del weights_dict['model.heads.1.weight']
+            # del weights_dict['model.heads.1.bias']
+            try:
+                print(model.load_state_dict(weights_dict, strict=False))
+            except:
+                print('del paramers of head1-----------------')
+                del weights_dict['model.heads.1.weight']
+                del weights_dict['model.heads.1.bias']
+                print(model.load_state_dict(weights_dict, strict=False))
+        del weights_dict
     return model

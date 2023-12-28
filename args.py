@@ -39,7 +39,7 @@ parser.add_argument('--tasks',type= lambda x: set_type(x,str), default='fungus,l
 parser.add_argument('--long-tails',type= lambda x: set_type(x,str), default='False,False' ,help='whether use long_tails or not')
 parser.add_argument('--alpha',type=lambda x: set_type(x,float),default=1,help='the value of alpha if long-tail')
 
-parser.add_argument('--cont', action='store_true',help='need to count high positive or false')
+parser.add_argument('--cont', action='store_true',help='need to count high positive or not')
 parser.add_argument('--show-tasks',type=lambda x: set_type(x,int),default=None,help='index of tasks to show the resluts')
 parser.add_argument('--needpatch', action='store_true')
 parser.add_argument('--backbone',default='vit',choices=['vit','TransMIL','vit_res','vit_moe'])
@@ -50,12 +50,14 @@ parser.add_argument('--logdir',required=True,help='dir to save error log')
 
 parser.add_argument('--depth',type=int,default=12)
 parser.add_argument('--gate-dim',type=int,default=None)
-parser.add_argument('--num_experts_pertask',type=int,default=-1)
+parser.add_argument('--moe_experts',type=int,default=16)
 parser.add_argument("--local-rank","--local_rank", help="local device id on current node",type=int,default=None)
+parser.add_argument('--use_weight', action='store_true',help='need to balance the loss or not')
+parser.add_argument('--moe_top_k',type=lambda x: set_type(x,int),default=4,help='top k of per task')
 
 
 def init_args(args):
-    check_attrs = ['num_classes','loss_fns','tasks','long_tails','alpha','loss_weights','lr_head']
+    check_attrs = ['num_classes','loss_fns','tasks','long_tails','alpha','loss_weights','lr_head','moe_top_k']
     for attr in check_attrs:
         val = getattr(args,attr)
         assert isinstance(val, (int, float, str,list)) , f'expect type of {attr} in [int,float,str] ,but get {val} {type(val)}'

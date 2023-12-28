@@ -132,25 +132,25 @@ class FMoETransformerMLP(FMoE):
         if gate == NoisyGate:
             if self.multi_gate:
                 self.gate = nn.ModuleList([
-                    gate(d_gate, num_expert, world_size, top_k,
+                    gate(d_gate, num_expert, world_size, top_k[i],
                     return_decoupled_activation=gate_return_decoupled_activation, regu_experts_fromtask = self.regu_experts_fromtask,
                     num_experts_pertask = self.num_experts_pertask,num_tasks = self.num_tasks, regu_sem=self.regu_sem,sem_force = self.sem_force)
                     for i in range(num_tasks)])
             else:
-                self.gate = gate(d_gate, num_expert, world_size, top_k,
+                self.gate = gate(d_gate, num_expert, world_size, top_k[i],
                 return_decoupled_activation=gate_return_decoupled_activation, regu_experts_fromtask = self.regu_experts_fromtask,
                 num_experts_pertask = self.num_experts_pertask,num_tasks = self.num_tasks, regu_sem=self.regu_sem,sem_force = self.sem_force)
         elif gate == NoisyGate_VMoE:
             if self.multi_gate:
                 print('multigate,NoisyGate_VMoE')
                 self.gate = nn.ModuleList([
-                    gate(d_gate, num_expert, world_size, top_k,
+                    gate(d_gate, num_expert, world_size, top_k[i],
                     return_decoupled_activation=gate_return_decoupled_activation,
                     noise_std=vmoe_noisy_std,regu_experts_fromtask = self.regu_experts_fromtask,
                     num_experts_pertask=self.num_experts_pertask, num_tasks=self.num_tasks,regu_sem=self.regu_sem,sem_force = self.sem_force, regu_subimage=self.regu_subimage)
                     for i in range(num_tasks)])
             else:
-                self.gate = gate(d_gate, num_expert, world_size, top_k,
+                self.gate = gate(d_gate, num_expert, world_size, top_k[i],
                 return_decoupled_activation=gate_return_decoupled_activation,
                 noise_std=vmoe_noisy_std,regu_experts_fromtask = self.regu_experts_fromtask,
                 num_experts_pertask = self.num_experts_pertask, num_tasks = self.num_tasks,regu_sem=self.regu_sem,sem_force = self.sem_force, regu_subimage=self.regu_subimage)
@@ -271,15 +271,15 @@ class FMoETransformerMLP(FMoE):
             print('prune_prob',prune_prob)
         if self.sem_force and (sem is not None):
             batch = sem.shape[0]
-            gate_top_k_idx = gate_top_k_idx.reshape(batch,-1,self.top_k)
+            gate_top_k_idx = gate_top_k_idx.reshape(batch,-1,self.top_k[task_id])
             sem = sem.reshape(batch,-1)
             for k in range(batch):
                 for i in range(sem.shape[-1]):
                     for j in range(len(self.force_id)):
                         if sem[k,i] in self.force_id[j]:
                             gate_top_k_idx[k,i+1,:]=[j*2,j*2+1]
-            gate_top_k_idx = gate_top_k_idx.reshape(-1,self.top_k)
-            gate_score =  torch.ones((gate_score.shape[0],self.top_k),device=gate_score.device)*0.5
+            gate_top_k_idx = gate_top_k_idx.reshape(-1,self.top_k[task_id])
+            gate_score =  torch.ones((gate_score.shape[0],self.top_k[task_id]),device=gate_score.device)*0.5
 
 
         if self.regu_experts_fromtask and (task_id is not None):
@@ -315,7 +315,7 @@ class FMoETransformerMLP(FMoE):
                 # to: (BxL) x top_k x d_model
                 x = torch.zeros(
                     mask.shape[0],
-                    self.top_k,
+                    self.top_k[task_id],
                     dim,
                     device=tensor.device,
                     dtype=tensor.dtype,
@@ -331,12 +331,12 @@ class FMoETransformerMLP(FMoE):
 
             def view_func(tensor):
                 dim = tensor.shape[-1]
-                tensor = tensor.view(-1, self.top_k, dim)
+                tensor = tensor.view(-1, self.top_k[task_id], dim)
                 return tensor
 
             moe_outp = tree.map_structure(view_func, fwd)
 
-        gate_score = gate_score.view(-1, 1, self.top_k)
+        gate_score = gate_score.view(-1, 1, self.top_k[task_id])
 
         def bmm_func(tensor):
             dim = tensor.shape[-1]

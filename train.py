@@ -66,7 +66,7 @@ def main(args):
 
 
         # 实例化训练数据集
-    train_dataset = MultiDataSetMoE(data=pd.read_csv(args.train_csv),
+    train_dataset = MultiDataSet(data=pd.read_csv(args.train_csv),
                               #images_class=train_images_label,
                               transforms=data_transform['train'],
                               img_batch=args.img_batch,
