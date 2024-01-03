@@ -9,7 +9,7 @@ import torch
 from tqdm import tqdm
 import torch.nn as nn
 import matplotlib.pyplot as plt
-import torch
+
 import numpy as np
 import random
 import sys
@@ -18,6 +18,9 @@ from losses.losses import FocalLoss
 from args import get_args
 from utils.evaluate import compute_confusion_matrix,compute_indexes
 from sklearn.metrics import roc_auc_score
+from models.gate_funs.noisy_gate import NoisyGate
+from models.gate_funs.noisy_gate_vmoe import NoisyGate_VMoE
+from torchmetrics import MetricCollection,Recall,Specificity
 
 # from seresnext import se_resnext50_32x4d
 args=get_args()
@@ -233,12 +236,12 @@ def train_one_epoch_multi_longtail_weight(model, optimizer, data_loader, device,
         x = images.to(device)
         B = x.shape[0]
 
-        if args.backbone != 'vit_res':
+        if args.backbone in ('vit','TransMIL'):
             resnet.eval()
             x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3], x.shape[4]))
             features = pre_cls_model(x)
             features = torch.reshape(features, (B, int(features.shape[0] / B), features.shape[1]))
-        elif args.backbone == 'vit_res':
+        elif args.backbone in ('vit_res','vit_moe'):
             features = x
 
 
@@ -309,6 +312,9 @@ def evaluate_multi_longtail_weight(model, data_loader, device, epoch, multi_task
     errors_nums = [0] * multi_tasks
     errors_lists = [ [] for i in range(multi_tasks) ]
 
+    sens_mertics = [ Recall(task='multiclass' if i>2 else 'binary',num_classes=i,average='micro').to(device) for i in args.num_classes ]
+    spec_mertics = [ Specificity(task='multiclass' if i>2 else 'binary',num_classes=i,average='micro').to(device) for i in args.num_classes ]
+
     for step, data in enumerate(data_loader):
         images, labels = data
         sample_num += images.shape[0]
@@ -316,47 +322,615 @@ def evaluate_multi_longtail_weight(model, data_loader, device, epoch, multi_task
         x = images.to(device)
         
         B = x.shape[0]
-        if args.backbone != 'vit_res':
+        
+        if args.backbone in ('vit','TransMIL'):
             resnet.eval()
-            torch.save(resnet.state_dict(), f'{save_pth}/resnet.pth')
             x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3], x.shape[4]))
             features = pre_cls_model(x)
             features = torch.reshape(features, (B, int(features.shape[0] / B), features.shape[1]))
-        elif args.backbone == 'vit_res':
+        elif args.backbone in ('vit_res','vit_moe'):
             features = x
  
         labels = list(labels.values())
         preds = model(features)
 
         for i in range(multi_tasks):
+            
+            # print(i,'dwd')
             loss_function = get_lossfn(loss_functions[i])
             pred = preds[i]
             label = labels[i]
             label = label.long().to(device)
-            loss = loss_function(pred, label)
+            if torch.all(label==-1):
+                continue
+            idx = label!=-1
+            label = label[idx]
+            pred = pred[idx]
+            
 
             pred_classes = torch.max(pred, dim=1)[1]
+            
+            loss = loss_function(pred, label)
             
             if args.tasks[i] == 'level':
                 accu_num[i] += (torch.abs(pred_classes-label) <=1).sum().item()  # torch.eq(pred_classes, label.to(device)).sum().item()
                 #print('sdsa')
             else:
+                
                 accu_num[i] += torch.eq(pred_classes, label.to(device)).sum().item()
-                loss,error_num,error_name = calculate_loss(loss_function,pred,label,args.tasks[i],args.loss_weights[i],args.reduction,labels,cont)
+                # loss,error_num,error_name = calculate_loss(loss_function,pred,label,args.tasks[i],args.loss_weights[i],args.reduction,labels,cont)
                 # print(loss,error_num,error_name)
-                errors_nums[i] += error_num
-                errors_lists[i].extend(error_name)
+                # errors_nums[i] += error_num
+                # errors_lists[i].extend(error_name)
 
             accu_loss[i] += loss.detach().item()
-
+            
+            sens_mertics[i].update(pred_classes,label)
+            spec_mertics[i].update(pred_classes,label)
+            
         # s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,acc_l/ (step + 1),i,acc_n/ sample_num) for i,(acc_l,acc_n) in enumerate(zip(accu_loss,accu_num))])
         s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,accu_loss[i]/ (step + 1),i,accu_num[i]/ sample_num) for i in args.show_tasks])
         s_desc = f'[{name} epoch {epoch}] '+ s
         if cont :
             s_desc += f' error: {errors_nums}'
         data_loader.desc = s_desc
+        
+    sens_res = [sens.compute().item() for sens in sens_mertics]
+    spec_res = [spec.compute().item() for spec in spec_mertics] 
+    print(f'{name} Senstive: ',sens_res)
+    print(f'{name} Specificity: ',spec_res)
+
     if cont:
         err_res = ''.join([f'total_errors{i} : {errors_nums[i]} {len(errors_lists[i])} ' for i in args.show_tasks])
         print(err_res)
         
     return np.array(accu_loss) / (step + 1), np.array(accu_num) / sample_num,  errors_lists
+
+
+
+
+def train_one_epoch_multi_moe(model, optimizer, data_loader, device, epoch, multi_tasks,istrain=[True]*args.multi_tasks,cont=False,use_weight=False):
+    model.train()
+    
+    # loss_function = torch.nn.BCELoss()#torch.nn.CrossEntropyLoss()
+    loss_functions = args.loss_fns
+    accu_loss = torch.zeros(1).to(device)  # 累计损失
+    accu_num = torch.zeros(1).to(device)  # 累计预测正确的样本数
+    optimizer.zero_grad()
+
+    sample_num = 0
+    data_loader = tqdm(data_loader, file=sys.stdout)
+    accu_num = [0] * multi_tasks
+    accu_loss = [0] * multi_tasks
+    errors_nums = [0] * multi_tasks
+    errors_lists = [ [] for i in range(multi_tasks) ]
+    task_epoch = [1e-8] * multi_tasks
+    task_num = [1e-8] * multi_tasks
+    for step, data in enumerate(data_loader):
+        images, labels = data
+        sample_num += images.shape[0]
+        x = images.to(device)
+        B = x.shape[0]
+
+        if args.backbone in ('vit','TransMIL'):
+            resnet.eval()
+            x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3], x.shape[4]))
+            features = pre_cls_model(x)
+            features = torch.reshape(features, (B, int(features.shape[0] / B), features.shape[1]))
+        elif args.backbone in ('vit_res','vit_moe'):
+            features = x
+        
+        # task_ids= labels['task_id']
+        # print(labels)
+        # print(task_ids)
+        preds = model(features,None)
+        # print(preds.keys(),'sdww')
+        # print(preds[0],preds[0].size())
+        task_id = labels['task_id'].to(device)
+        # index = torch.Tensor((torch.range(0,args.multi_tasks),task_id))
+        task_id_mask = torch.zeros(args.multi_tasks, task_id.shape[0]).to(device)
+        task_id_mask[task_id,range(task_id.shape[0])]=1
+        task_id_mask = task_id_mask.long()
+        # one_hot.scatter_(0,  task_id.reshape(1,-1), 1)
+        # one_hot = one_hot.transpose(0,1)
+        # print(task_id_mask)
+        # print('--'*100)
+    
+        
+        # print(task_id_weight,task_id_weight.size(),preds[0].size(),'wwwwwwwwwwwwwwwwwwwwwww')
+
+        loss_total = 0
+        for i in range(args.multi_tasks):
+            
+            # sb = task_id_mask[i].detach().cpu().sum().item()
+            # print(i,sb,'ww'*50)
+            if not istrain[i] or task_id_mask[i].sum().item() == 0:
+                # print(f' skip {i}')
+                continue
+
+            pred = preds[i].to(device) 
+            label = labels[f'label_{i}'].to(device) 
+            pred = pred[task_id_mask[i]==1]
+            label = label[task_id_mask[i]==1]
+            
+            loss_function = get_lossfn(loss_functions[i],use_reduction=True)
+            loss = loss_function(pred,label)
+            if args.reduction == 'none':
+                loss = loss.mean()
+            
+            pred_classes = torch.max(torch.softmax(pred, dim=1), dim=1)[1]
+            accu_num[i] += torch.eq(pred_classes, label.to(device)).sum().item()
+            
+            accu_loss[i] += loss.detach().item()
+            task_epoch[i] += 1
+            task_num[i] += task_id_mask[i].sum().item()
+            
+            task_num_torch = torch.Tensor(task_num)
+            if use_weight and torch.all(task_num_torch>5):
+                weights_p = task_num_torch / task_num_torch.sum()
+                weight = 1 / (weights_p[i] / weights_p).sum()
+                loss *= weight
+                
+            
+            loss_total +=loss
+        loss_noisy = collect_noisy_gating_loss(model,weight=0.01)
+        loss_total+=loss_noisy
+        loss_total.backward()
+        # print(task_num,accu_num)
+        # s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,acc_l/ (step + 1),i,acc_n/ sample_num) for i,(acc_l,acc_n) in enumerate(zip(accu_loss,accu_num))])
+        s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,accu_loss[i]/ (task_epoch[i]),i,accu_num[i]/ task_num[i]) for i in args.show_tasks])
+ 
+        s_desc = f'[train epoch {epoch}] '+ s 
+
+        data_loader.desc = s_desc
+
+        if not torch.isfinite(loss_total):
+            print('WARNING: non-finite loss, ending training ', loss_total)
+            sys.exit(1)
+
+        optimizer.step()
+        optimizer.zero_grad()
+    
+        #print(f' total errors :{errors_nums[1]} ,{len(errors_lists[1])}')
+    return np.array(accu_loss) / np.array(task_epoch), np.array(accu_num) / np.array(task_num), errors_lists
+
+
+
+
+@torch.no_grad()
+def evaluate_multi_moe(model, data_loader, device, epoch, multi_tasks,name='valid',cont=False):
+    loss_function = torch.nn.CrossEntropyLoss()
+
+    model.eval()
+    accu_num = torch.zeros(1).to(device)  # 累计预测正确的样本数
+    accu_loss = torch.zeros(1).to(device)  # 累计损失
+    zhenyin = 0
+    gjb = 0
+    sample_num = 0
+    louzhen = 0
+    data_loader = tqdm(data_loader, file=sys.stdout)
+    accu_loss = [0] * multi_tasks
+    accu_num = [0] * multi_tasks
+    loss_functions = args.loss_fns
+    errors_nums = [0] * multi_tasks
+    errors_lists = [ [] for i in range(multi_tasks) ]
+
+    for step, data in enumerate(data_loader):
+        
+        images, labels = data
+        sample_num += images.shape[0]
+        
+        x = images.to(device)
+        
+        B = x.shape[0]
+        
+        if args.backbone in ('vit','TransMIL'):
+            resnet.eval()
+            x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3], x.shape[4]))
+            features = pre_cls_model(x)
+            features = torch.reshape(features, (B, int(features.shape[0] / B), features.shape[1]))
+        elif args.backbone in ('vit_res','vit_moe'):
+            features = x
+ 
+
+        preds = model(features,None)
+              
+        loss_total = 0
+        for i in range(args.multi_tasks):
+    
+            pred = preds[i].to(device)
+            label = labels[f'label_{i}'].to(device) 
+           
+            loss_function = get_lossfn(loss_functions[i],use_reduction=False)
+            loss = loss_function(pred,label)
+            if args.reduction == 'none':
+                loss = loss.mean()
+            
+            pred_classes = torch.max(torch.softmax(pred, dim=1), dim=1)[1]
+            # print(pred_classes,label,loss,pred)
+            accu_num[i] += torch.eq(pred_classes, label.to(device)).sum().item()
+            
+            accu_loss[i] += loss.detach().item()
+            loss_total +=loss
+        loss_noisy = collect_noisy_gating_loss(model,weight=0.01)
+        loss_total+=loss_noisy
+        # print(accu_loss,accu_num)
+
+        # s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,acc_l/ (step + 1),i,acc_n/ sample_num) for i,(acc_l,acc_n) in enumerate(zip(accu_loss,accu_num))])
+        s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,accu_loss[i]/ (step + 1),i,accu_num[i]/ sample_num) for i in args.show_tasks])
+        s_desc = f'[{name} epoch {epoch}] '+ s
+
+        data_loader.desc = s_desc
+
+        
+    return np.array(accu_loss) / (step + 1), np.array(accu_num) / sample_num,  errors_lists
+
+
+
+
+
+def train_one_epoch_multi_moe_dis(model, optimizer, data_loader, local_rank, epoch, multi_tasks,istrain=[True]*args.multi_tasks,cont=False,use_weight=False):
+    model.train()
+    
+    # loss_function = torch.nn.BCELoss()#torch.nn.CrossEntropyLoss()
+    loss_functions = args.loss_fns
+    accu_loss = torch.zeros(1).to(local_rank)  # 累计损失
+    accu_num = torch.zeros(1).to(local_rank)  # 累计预测正确的样本数
+    optimizer.zero_grad()
+
+    sample_num = 0
+    data_loader = tqdm(data_loader, file=sys.stdout)
+    accu_num = [0] * multi_tasks
+    accu_loss = [0] * multi_tasks
+    errors_nums = [0] * multi_tasks
+    errors_lists = [ [] for i in range(multi_tasks) ]
+    task_epoch = [1e-8] * multi_tasks
+    task_num = [1e-8] * multi_tasks
+    
+    sens_mertics = [ Recall(task='multiclass' if i>2 else 'binary',num_classes=i,average='micro').cuda(local_rank) for i in args.num_classes ]
+    spec_mertics = [ Specificity(task='multiclass' if i>2 else 'binary',num_classes=i,average='micro').cuda(local_rank) for i in args.num_classes ]
+    
+    for step, data in enumerate(data_loader):
+        images, labels = data
+        sample_num += images.shape[0]
+        x = images.cuda(local_rank)
+        B = x.shape[0]
+
+        if args.backbone in ('vit','TransMIL'):
+            resnet.eval()
+            x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3], x.shape[4]))
+            features = pre_cls_model(x)
+            features = torch.reshape(features, (B, int(features.shape[0] / B), features.shape[1]))
+        elif args.backbone in ('vit_res','vit_moe'):
+            features = x
+        
+        # task_ids= labels['task_id']
+        # print(labels)
+        # print(task_ids)
+        preds = model(features,None)
+
+        task_id = labels['task_id'].cuda(local_rank)
+        # index = torch.Tensor((torch.range(0,args.multi_tasks),task_id))
+        task_id_mask = torch.zeros(args.multi_tasks, task_id.shape[0]).cuda(local_rank)
+        task_id_mask[task_id,range(task_id.shape[0])]=1
+        task_id_mask = task_id_mask.long()
+
+        loss_total = 0
+        for i in range(args.multi_tasks):
+            
+            # sb = task_id_mask[i].detach().cpu().sum().item()
+            # print(i,sb,'ww'*50)
+            if not istrain[i] or task_id_mask[i].sum().item() == 0:
+                # print(f' skip {i}')
+                continue
+
+            pred = preds[i].cuda(local_rank)
+            label = labels[f'label_{i}'].cuda(local_rank) 
+            pred = pred[task_id_mask[i]==1]
+            label = label[task_id_mask[i]==1]
+            
+            loss_function = get_lossfn(loss_functions[i],use_reduction=True)
+            loss = loss_function(pred,label)
+            if args.reduction == 'none':
+                loss = loss.mean()
+            
+            pred_classes = torch.max(torch.softmax(pred, dim=1), dim=1)[1]
+            accu_num[i] += torch.eq(pred_classes, label.cuda(local_rank)).sum().item()
+            
+            accu_loss[i] += loss.detach().item()
+            task_epoch[i] += 1
+            task_num[i] += task_id_mask[i].sum().item()
+
+            sens_mertics[i].update(pred_classes,label)
+            spec_mertics[i].update(pred_classes,label)
+            
+            task_num_torch = torch.Tensor(task_num)
+            if use_weight and torch.all(task_num_torch>5):
+                weights_p = task_num_torch / task_num_torch.sum()
+                weight = 1 / (weights_p[i] / weights_p).sum()
+                loss *= weight
+                # if local_rank == 0:
+                #     print(i,weight)
+                
+            loss_total +=loss
+        loss_noisy = collect_noisy_gating_loss(model,weight=0.01)
+        loss_total+=loss_noisy
+        loss_total.backward()
+        # print(task_num,accu_num)
+        # s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,acc_l/ (step + 1),i,acc_n/ sample_num) for i,(acc_l,acc_n) in enumerate(zip(accu_loss,accu_num))])
+        s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,accu_loss[i]/ (task_epoch[i]),i,accu_num[i]/ task_num[i]) for i in args.show_tasks])
+ 
+        s_desc = f'[train epoch {epoch}] '+ s 
+
+        data_loader.desc = s_desc
+
+        if not torch.isfinite(loss_total):
+            print('WARNING: non-finite loss, ending training ', loss_total)
+            sys.exit(1)
+
+        optimizer.step()
+        optimizer.zero_grad()
+    
+        #print(f' total errors :{errors_nums[1]} ,{len(errors_lists[1])}')
+
+    sens_res = [sens.compute().item() for sens in sens_mertics]
+    spec_res = [spec.compute().item() for spec in spec_mertics] 
+    print('Train Senstive: ',sens_res)
+    print('Train Specificity: ',spec_res)
+    return np.array(accu_loss) / np.array(task_epoch), np.array(accu_num) / np.array(task_num), errors_lists, sens_res, spec_res
+
+
+
+
+@torch.no_grad()
+def evaluate_multi_moe_dis(model, data_loader, local_rank, epoch, multi_tasks,name='valid',cont=False):
+    loss_function = torch.nn.CrossEntropyLoss()
+
+    model.eval()
+
+    zhenyin = 0
+    gjb = 0
+    sample_num = 0
+    louzhen = 0
+    data_loader = tqdm(data_loader, file=sys.stdout)
+    accu_loss = [0] * multi_tasks
+    accu_num = [0] * multi_tasks
+    loss_functions = args.loss_fns
+    errors_nums = [0] * multi_tasks
+    errors_lists = [ [] for i in range(multi_tasks) ]
+    
+    sens_mertics = [ Recall(task='multiclass' if i>2 else 'binary',num_classes=i,average='micro').cuda(local_rank) for i in args.num_classes ]
+    spec_mertics = [ Specificity(task='multiclass' if i>2 else 'binary',num_classes=i,average='micro').cuda(local_rank) for i in args.num_classes ]
+
+    for step, data in enumerate(data_loader):
+        
+        images, labels = data
+        sample_num += images.shape[0]
+        
+        x = images.cuda(local_rank)
+        
+        B = x.shape[0]
+        
+        if args.backbone in ('vit','TransMIL'):
+            resnet.eval()
+            x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3], x.shape[4]))
+            features = pre_cls_model(x)
+            features = torch.reshape(features, (B, int(features.shape[0] / B), features.shape[1]))
+        elif args.backbone in ('vit_res','vit_moe'):
+            features = x
+ 
+
+        preds = model(features,None)
+        code = labels['code']
+        loss_total = 0
+        for i,key in enumerate(list(labels.keys())[:multi_tasks]):
+    
+            pred = preds[i].cuda(local_rank)
+            label = labels[key].cuda(local_rank) 
+            if torch.all(label==-1):
+                continue
+            idx = label!=-1
+            label = label[idx]
+            pred = pred[idx]
+            highlabel = labels['highlabel'].cuda(local_rank)
+            highlabel = highlabel[idx]
+            
+            code1 = [code[k] for k in range(len(code)) if idx[k]]
+            # print(len(code1),highlabel.size(),pred.size(),'ssssssssssssssssss')
+            labels1 = {'highlabel':highlabel,'code':code1}
+            loss,errors_num,error_name = calculate_loss(loss_function,pred,label,args.tasks[i],args.loss_weights[i],args.reduction,labels1,cont)
+            accu_loss[i] += loss.detach().item()
+            errors_nums[i] += errors_num
+            errors_lists[i].extend(error_name)
+            
+            loss_function = get_lossfn(loss_functions[i],use_reduction=False)
+            loss = loss_function(pred,label)
+            if args.reduction == 'none':
+                loss = loss.mean()
+            
+            pred_classes = torch.max(torch.softmax(pred, dim=1), dim=1)[1]
+            # print(i,pred_classes,label.cpu().numpy(),labels['code'])
+            # print(pred_classes,label,loss,pred)
+            accu_num[i] += torch.eq(pred_classes, label).sum().item()
+            
+            # accu_loss[i] += loss.detach().item()
+            loss_total +=loss
+            
+            sens_mertics[i].update(pred_classes,label)
+            spec_mertics[i].update(pred_classes,label)
+            
+        loss_noisy = collect_noisy_gating_loss(model,weight=0.01)
+        loss_total+=loss_noisy
+        # print(accu_loss,accu_num)
+
+        # s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,acc_l/ (step + 1),i,acc_n/ sample_num) for i,(acc_l,acc_n) in enumerate(zip(accu_loss,accu_num))])
+        
+        s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,accu_loss[i]/ (step + 1),i,accu_num[i]/ sample_num) for i in args.show_tasks])
+        s_desc = f'[{name} epoch {epoch}] '+ s
+        
+        if cont :
+            s_desc += f' error: {errors_nums[0]}'
+
+        data_loader.desc = s_desc
+
+    sens_res = [sens.compute().item() for sens in sens_mertics]
+    spec_res = [spec.compute().item() for spec in spec_mertics] 
+    
+    if cont:
+        # err_res = ''.join([f'total_errors{i} : {errors_nums[i]} {len(errors_lists[i])} ' for i in args.show_tasks])
+        # print(err_res)
+        print(f'total_errors_label : {errors_nums[0]} {len(errors_lists[0])} ')
+        
+    print(f'{name} Senstive: ',sens_res)
+    print(f'{name} Specificity: ',spec_res)
+    return np.array(accu_loss) / (step + 1), np.array(accu_num) / sample_num,  errors_lists, sens_res, spec_res
+
+
+
+def collect_noisy_gating_loss(model, weight):
+    loss = 0
+    for module in model.modules():
+        if (isinstance(module, NoisyGate) or isinstance(module, NoisyGate_VMoE)) and module.has_loss:
+            # print(module)
+            loss += module.get_loss()
+    return loss * weight
+
+
+
+
+
+def train_one_epoch_multi_moe_dis2(model, optimizer, data_loader, local_rank, epoch, multi_tasks,istrain=[True]*args.multi_tasks,cont=False,use_weight=False):
+    model.train()
+    
+    # loss_function = torch.nn.BCELoss()#torch.nn.CrossEntropyLoss()
+    loss_functions = args.loss_fns
+    accu_loss = torch.zeros(1).to(local_rank)  # 累计损失
+    accu_num = torch.zeros(1).to(local_rank)  # 累计预测正确的样本数
+    optimizer.zero_grad()
+
+    sample_num = 0
+    data_loader = tqdm(data_loader, file=sys.stdout)
+    accu_num = [0] * multi_tasks
+    accu_loss = [0] * multi_tasks
+    errors_nums = [0] * multi_tasks
+    errors_lists = [ [] for i in range(multi_tasks) ]
+    task_epoch = [1e-8] * multi_tasks
+    task_num = [1e-8] * multi_tasks
+    
+    sens_mertics = [ Recall(task='multiclass' if i>2 else 'binary',num_classes=i,average='micro').cuda(local_rank) for i in args.num_classes ]
+    spec_mertics = [ Specificity(task='multiclass' if i>2 else 'binary',num_classes=i,average='micro').cuda(local_rank) for i in args.num_classes ]
+    
+    for step, data in enumerate(data_loader):
+        images, labels = data
+        sample_num += images.shape[0]
+        x = images.cuda(local_rank)
+        B = x.shape[0]
+
+        if args.backbone in ('vit','TransMIL'):
+            resnet.eval()
+            x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3], x.shape[4]))
+            features = pre_cls_model(x)
+            features = torch.reshape(features, (B, int(features.shape[0] / B), features.shape[1]))
+        elif args.backbone in ('vit_res','vit_moe'):
+            features = x
+        # print(labels.keys())
+        # task_ids= labels['task_id']
+        # print(labels)
+        # print(task_ids)
+        # print('aaaaaaaaaa',step)
+        preds = model(features,None)
+        # print('cccccccccccc')
+        # 
+        
+        task_id = labels['task_id'].cuda(local_rank)
+        # index = torch.Tensor((torch.range(0,args.multi_tasks),task_id))
+        task_id_mask = torch.zeros(args.multi_tasks, task_id.shape[0]).cuda(local_rank)
+        task_id_mask[task_id,range(task_id.shape[0])]=1
+        task_id_mask = task_id_mask.long()
+
+        code = labels['code']
+        loss_total = 0
+        for i,key in enumerate(list(labels.keys())[:args.multi_tasks]):
+            # print(key)
+            # print('bbbbbbbbbbbbbbbbbbbb',args.tasks[i])
+            
+            # sb = task_id_mask[i].detach().cpu().sum().item()
+            # print(i,sb,'ww'*50)
+            if not istrain[i] or task_id_mask[i].sum().item() == 0:
+                # print(f' skip {i}')
+                continue
+
+            pred = preds[i].cuda(local_rank)
+            label = labels[key].cuda(local_rank) 
+            highlabel = labels['highlabel'].cuda(local_rank)
+            
+            # print(highlabel.size(),task_id_mask[i].size(),pred.size(),'dsd')
+            pred = pred[task_id_mask[i]==1]
+            label = label[task_id_mask[i]==1]
+            highlabel = highlabel[task_id_mask[i]==1]
+            # labels['code'] = labels['code']
+            
+            code1 = [code[k] for k in range(len(code)) if task_id_mask[i][k] == 1]
+            # print(args.tasks[i],type(labels['code']),len(code1),pred.size(),highlabel.size())
+            
+            loss_function = get_lossfn(loss_functions[i],use_reduction=True)
+
+            labels1 = {'highlabel':highlabel,'code':code1}
+            loss,errors_num,error_name = calculate_loss(loss_function,pred,label,args.tasks[i],args.loss_weights[i],args.reduction,labels1,cont)
+            accu_loss[i] += loss.detach().item()
+            errors_nums[i] += errors_num
+            errors_lists[i].extend(error_name)
+             
+            pred_classes = torch.max(torch.softmax(pred, dim=1), dim=1)[1]
+            accu_num[i] += torch.eq(pred_classes, label.cuda(local_rank)).sum().item()
+
+            task_epoch[i] += 1
+            task_num[i] += task_id_mask[i].sum().item()
+
+            sens_mertics[i].update(pred_classes,label)
+            spec_mertics[i].update(pred_classes,label)
+            
+            task_num_torch = torch.Tensor(task_num)
+            if use_weight and torch.all(task_num_torch>5):
+                weights_p = task_num_torch / task_num_torch.sum()
+                weight = 1 / (weights_p[i] / weights_p).sum()
+                loss *= weight
+                # if local_rank == 0:
+                #     print(i,weight)
+                
+            loss_total +=loss
+        loss_noisy = collect_noisy_gating_loss(model,weight=0.01)
+        loss_total+=loss_noisy
+        loss_total.backward()
+        # print(task_num,accu_num)
+        # s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,acc_l/ (step + 1),i,acc_n/ sample_num) for i,(acc_l,acc_n) in enumerate(zip(accu_loss,accu_num))])
+        s = ''.join([' loss_{}: {:.3f}, acc_{}: {:.3f}'.format(i,accu_loss[i]/ (task_epoch[i]),i,accu_num[i]/ task_num[i]) for i in args.show_tasks])
+ 
+        s_desc = f'[train epoch {epoch}] '+ s 
+        
+        if cont :
+            s_desc += f' error: {errors_nums[0]}'
+        data_loader.desc = s_desc
+        
+        
+
+
+        if not torch.isfinite(loss_total):
+            print('WARNING: non-finite loss, ending training ', loss_total)
+            sys.exit(1)
+
+        optimizer.step()
+        optimizer.zero_grad()
+    
+        #print(f' total errors :{errors_nums[1]} ,{len(errors_lists[1])}')
+
+    sens_res = [sens.compute().item() for sens in sens_mertics]
+    spec_res = [spec.compute().item() for spec in spec_mertics] 
+    
+    if cont:
+        # err_res = ''.join([f'total_errors{i} : {errors_nums[i]} {len(errors_lists[i])} ' for i in args.show_tasks])
+        print(f'total_errors_label : {errors_nums[0]} {len(errors_lists[0])} ')
+        
+    print('Train Senstive: ',sens_res)
+    print('Train Specificity: ',spec_res)
+    return np.array(accu_loss) / np.array(task_epoch), np.array(accu_num) / np.array(task_num), errors_lists, sens_res, spec_res

@@ -1,0 +1,165 @@
+bme_gpu06
+start on Sun Dec 17 19:03:58 CST 2023
+/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/launch.py:181: FutureWarning: The module torch.distributed.launch is deprecated
+and will be removed in future. Use torchrun.
+Note that --use-env is set by default in torchrun.
+If your script expects `--local-rank` argument to be set, please
+change it to read from `os.environ['LOCAL_RANK']` instead. See 
+https://pytorch.org/docs/stable/distributed.html#launch-utility for 
+further instructions
+
+  warnings.warn(
+[2023-12-17 19:04:00,629] torch.distributed.run: [WARNING] 
+[2023-12-17 19:04:00,629] torch.distributed.run: [WARNING] *****************************************
+[2023-12-17 19:04:00,629] torch.distributed.run: [WARNING] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+[2023-12-17 19:04:00,629] torch.distributed.run: [WARNING] *****************************************
+[0, 1, 2, 3, 4, 5] wdada
+[0, 1, 2, 3, 4, 5] wdada
+[0, 1, 2, 3, 4, 5][0, 1, 2, 3, 4, 5]  wdadawdada
+
+[0, 1, 2, 3, 4, 5] wdada
+[0, 1, 2, 3, 4, 5]Namespace(epochs=300, batch_size=16, lr=0.0001, lr_res=0.0001, lrf=0.1, lr_head=[0.0003, 0.0003, 0.0003, 0.0003, 0.0003, 0.0003], loss_weights=[10.0, 10.0, 10.0, 10.0, 10.0, 10.0], weights='', freeze_layers=False, device='cuda:0', where='/public/home/jianght2023/50_pths_moe', base_path='/public_bme/data/jianght/datas/Pathology/class2', train_csv='/public_bme/data/jianght/datas/Pathology/class2/select_train.csv', valid_csv='/public_bme/data/jianght/datas/Pathology/class2/total_test2.csv', positive_csv='/public_bme/data/jianght/datas/Pathology/class2/total_pos_supp_yang.csv', negative_csv='/public_bme/data/jianght/datas/Pathology/class2/test.csv', head_idx=None, img_batch=2, arch='resnet34', res_weights='/public/home/jianght2023/pths2/resnet2/resnet.pth', res_savedir='/public/home/jianght2023/pths_resnet/50_0gong_lt_res50', multi_tasks=6, num_classes=[2, 3, 4, 2, 2, 2], loss_fns=['CELoss', 'CELoss', 'CELoss', 'CELoss', 'CELoss', 'CELoss'], tasks=['label', 'label', 'label', 'label', 'label', 'label'], long_tails=[False, False, False, False, False, False], alpha=[0.2, 0.2, 0.2, 0.2, 0.2, 0.2], cont=True, show_tasks=[0, 1, 2, 3, 4, 5], needpatch=False, backbone='vit_moe', reduction='none', logdir='weight1_ttt.txt', depth=12, gate_dim=None, num_experts_pertask=-1, local_rank=1, task_id=[0, 1, 2, 3, 4, 5]) 
+wdada
+Namespace(epochs=300, batch_size=16, lr=0.0001, lr_res=0.0001, lrf=0.1, lr_head=[0.0003, 0.0003, 0.0003, 0.0003, 0.0003, 0.0003], loss_weights=[10.0, 10.0, 10.0, 10.0, 10.0, 10.0], weights='', freeze_layers=False, device='cuda:0', where='/public/home/jianght2023/50_pths_moe', base_path='/public_bme/data/jianght/datas/Pathology/class2', train_csv='/public_bme/data/jianght/datas/Pathology/class2/select_train.csv', valid_csv='/public_bme/data/jianght/datas/Pathology/class2/total_test2.csv', positive_csv='/public_bme/data/jianght/datas/Pathology/class2/total_pos_supp_yang.csv', negative_csv='/public_bme/data/jianght/datas/Pathology/class2/test.csv', head_idx=None, img_batch=2, arch='resnet34', res_weights='/public/home/jianght2023/pths2/resnet2/resnet.pth', res_savedir='/public/home/jianght2023/pths_resnet/50_0gong_lt_res50', multi_tasks=6, num_classes=[2, 3, 4, 2, 2, 2], loss_fns=['CELoss', 'CELoss', 'CELoss', 'CELoss', 'CELoss', 'CELoss'], tasks=['label', 'label', 'label', 'label', 'label', 'label'], long_tails=[False, False, False, False, False, False], alpha=[0.2, 0.2, 0.2, 0.2, 0.2, 0.2], cont=True, show_tasks=[0, 1, 2, 3, 4, 5], needpatch=False, backbone='vit_moe', reduction='none', logdir='weight1_ttt.txt', depth=12, gate_dim=None, num_experts_pertask=-1, local_rank=0, task_id=[0, 1, 2, 3, 4, 5])
+0
+----------------------------------------------------------------------------------------------------
+1
+----------------------------------------------------------------------------------------------------
+['label', 'highlabel', 'degree', 'fungus', 'cluecell', 'microbe']
+['label', 'highlabel', 'degree', 'fungus', 'cluecell', 'microbe']
+['code', 'label', 'highlabel', 'degree', 'fungus', 'cluecell', 'microbe']
+['code', 'label', 'highlabel', 'degree', 'fungus', 'cluecell', 'microbe']
+42744 9099
+Using 8 dataloader workers every process
+42744 9099
+/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+Using 8 dataloader workers every process
+/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet34_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet34_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet34_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet34_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+embed_dim is 512----------------------------------------------------------------
+embed_dim is 512----------------------------------------------------------------
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+torch.Size([1, 6, 512]) torch.Size([1, 1, 512])
+multigate,NoisyGate_VMoE
+torch.Size([1, 6, 512]) torch.Size([1, 1, 512])
+[False, False, False, False, False, False] 0
+(6, 512) embed_mean is None--------------
+[False, False, False, False, False, False] 0
+(6, 512) embed_mean is None--------------
+dsawww
+[140123536499888, 140123536499984, 140123536500080, 140123536500176, 140123536500272, 140123536500368, 140123536500464, 140123536500560, 140123536500656, 140123536500752, 140123536500848, 140123536500944]
+8 [{'params': <generator object Module.parameters at 0x7f710d39bca0>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x7f710d39bd80>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x7f710d39be60>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x7f710d3c0040>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x7f710d3c0120>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x7f710d3c0200>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <filter object at 0x7f7115f15390>}, {'params': <generator object Module.parameters at 0x7f710d39bbc0>, 'lr': 0.0001, 'momentum': 0.9, 'weight_decay': 5e-06}]
+[True, True, True, True, True, True]
+dsawww
+[140439649576112, 140439649576208, 140439649576304, 140439649576400, 140439649576496, 140439649576592, 140439649576688, 140439649576784, 140439649576880, 140439649576976, 140439649577072, 140439649577168]
+8 [{'params': <generator object Module.parameters at 0x7fbaa4387ca0>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x7fbaa4387d80>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x7fbaa4387e60>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x7fbaa43b0040>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x7fbaa43b0120>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x7fbaa43b0200>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <filter object at 0x7fbab40e5390>}, {'params': <generator object Module.parameters at 0x7fbaa4387bc0>, 'lr': 0.0001, 'momentum': 0.9, 'weight_decay': 5e-06}]
+[True, True, True, True, True, True]
+  0%|          | 0/1336 [00:00<?, ?it/s]  0%|          | 0/1336 [00:00<?, ?it/s][train epoch 0]  loss_0: 0.685, acc_0: 0.600 loss_1: 1.110, acc_1: 0.250 loss_2: 0.000, acc_2: 0.000 loss_3: 0.000, acc_3: 0.000 loss_4: 0.694, acc_4: 0.500 loss_5: 0.000, acc_5: 0.000:   0%|          | 1/1336 [00:10<4:02:33, 10.90s/it][train epoch 0]  loss_0: 0.813, acc_0: 0.200 loss_1: 1.071, acc_1: 0.125 loss_2: 1.389, acc_2: 0.500 loss_3: 0.000, acc_3: 0.000 loss_4: 0.000, acc_4: 0.000 loss_5: 0.466, acc_5: 1.000:   0%|          | 1/1336 [00:10<4:02:41, 10.91s/it][train epoch 0]  loss_0: 0.685, acc_0: 0.600 loss_1: 1.110, acc_1: 0.250 loss_2: 0.000, acc_2: 0.000 loss_3: 0.000, acc_3: 0.000 loss_4: 0.694, acc_4: 0.500 loss_5: 0.000, acc_5: 0.000:   0%|          | 1/1336 [00:14<5:12:21, 14.04s/it]
+Traceback (most recent call last):
+  File "/home_data/home/jianght2023/projects/cervical-cancer/train_distribute.py", line 288, in <module>
+    main(opt)
+  File "/home_data/home/jianght2023/projects/cervical-cancer/train_distribute.py", line 188, in main
+    train_loss, train_accs, train_error_list = train_one_epoch_multi_moe_dis(model=model,
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/projects/cervical-cancer/utils/utils.py", line 576, in train_one_epoch_multi_moe_dis
+    preds = model(features,None)
+            ^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/parallel/distributed.py", line 1515, in forward
+    inputs, kwargs = self._pre_forward(*inputs, **kwargs)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/parallel/distributed.py", line 1409, in _pre_forward
+    if torch.is_grad_enabled() and self.reducer._rebuild_buckets():
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Expected to have finished reduction in the prior iteration before starting a new one. This error indicates that your module has parameters that were not used in producing loss. You can enable unused parameter detection by passing the keyword argument `find_unused_parameters=True` to `torch.nn.parallel.DistributedDataParallel`, and by 
+making sure all `forward` function outputs participate in calculating loss. 
+If you already have done the above, then the distributed data parallel module wasn't able to locate the output tensors in the return value of your module's `forward` function. Please include the loss function and the structure of the return value of `forward` of your module when reporting this issue (e.g. list, dict, iterable).
+Parameter indices which did not receive grad for rank 0: 295 296 297 298 301 302
+ In addition, you can set the environment variable TORCH_DISTRIBUTED_DEBUG to either INFO or DETAIL to print out information about which particular parameters did not receive gradient on this rank as part of this error
+[train epoch 0]  loss_0: 0.813, acc_0: 0.200 loss_1: 1.071, acc_1: 0.125 loss_2: 1.389, acc_2: 0.500 loss_3: 0.000, acc_3: 0.000 loss_4: 0.000, acc_4: 0.000 loss_5: 0.466, acc_5: 1.000:   0%|          | 1/1336 [00:14<5:13:28, 14.09s/it]
+Traceback (most recent call last):
+  File "/home_data/home/jianght2023/projects/cervical-cancer/train_distribute.py", line 288, in <module>
+    main(opt)
+  File "/home_data/home/jianght2023/projects/cervical-cancer/train_distribute.py", line 188, in main
+    train_loss, train_accs, train_error_list = train_one_epoch_multi_moe_dis(model=model,
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/projects/cervical-cancer/utils/utils.py", line 576, in train_one_epoch_multi_moe_dis
+    preds = model(features,None)
+            ^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/parallel/distributed.py", line 1515, in forward
+    inputs, kwargs = self._pre_forward(*inputs, **kwargs)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/parallel/distributed.py", line 1409, in _pre_forward
+    if torch.is_grad_enabled() and self.reducer._rebuild_buckets():
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Expected to have finished reduction in the prior iteration before starting a new one. This error indicates that your module has parameters that were not used in producing loss. You can enable unused parameter detection by passing the keyword argument `find_unused_parameters=True` to `torch.nn.parallel.DistributedDataParallel`, and by 
+making sure all `forward` function outputs participate in calculating loss. 
+If you already have done the above, then the distributed data parallel module wasn't able to locate the output tensors in the return value of your module's `forward` function. Please include the loss function and the structure of the return value of `forward` of your module when reporting this issue (e.g. list, dict, iterable).
+Parameter indices which did not receive grad for rank 1: 297 298 299 300
+ In addition, you can set the environment variable TORCH_DISTRIBUTED_DEBUG to either INFO or DETAIL to print out information about which particular parameters did not receive gradient on this rank as part of this error
+[2023-12-17 19:04:30,634] torch.distributed.elastic.multiprocessing.api: [ERROR] failed (exitcode: 1) local_rank: 0 (pid: 43751) of binary: /home_data/home/jianght2023/miniconda3/envs/pytorch/bin/python
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/launch.py", line 196, in <module>
+    main()
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/launch.py", line 192, in main
+    launch(args)
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/launch.py", line 177, in launch
+    run(args)
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/run.py", line 797, in run
+    elastic_launch(
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/launcher/api.py", line 134, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/launcher/api.py", line 264, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+train_distribute.py FAILED
+------------------------------------------------------------
+Failures:
+[1]:
+  time      : 2023-12-17_19:04:30
+  host      : bme_gpu06
+  rank      : 1 (local_rank: 1)
+  exitcode  : 1 (pid: 43752)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2023-12-17_19:04:30
+  host      : bme_gpu06
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 43751)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
+end on Sun Dec 17 19:04:31 CST 2023

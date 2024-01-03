@@ -1,0 +1,273 @@
+bme_gpu09
+start on Sun Dec 17 19:41:00 CST 2023
+/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/launch.py:181: FutureWarning: The module torch.distributed.launch is deprecated
+and will be removed in future. Use torchrun.
+Note that --use-env is set by default in torchrun.
+If your script expects `--local-rank` argument to be set, please
+change it to read from `os.environ['LOCAL_RANK']` instead. See 
+https://pytorch.org/docs/stable/distributed.html#launch-utility for 
+further instructions
+
+  warnings.warn(
+[2023-12-17 19:41:02,037] torch.distributed.run: [WARNING] 
+[2023-12-17 19:41:02,037] torch.distributed.run: [WARNING] *****************************************
+[2023-12-17 19:41:02,037] torch.distributed.run: [WARNING] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+[2023-12-17 19:41:02,037] torch.distributed.run: [WARNING] *****************************************
+[0, 1, 2, 3, 4, 5][0, 1, 2, 3, 4, 5]  wdadawdada
+
+[0, 1, 2, 3, 4, 5][0, 1, 2, 3, 4, 5]  wdadawdada
+
+[0, 1, 2, 3, 4, 5] wdada
+[0, 1, 2, 3, 4, 5] wdada
+Namespace(epochs=300, batch_size=16, lr=0.0001, lr_res=0.0001, lrf=0.1, lr_head=[0.0003, 0.0003, 0.0003, 0.0003, 0.0003, 0.0003], loss_weights=[10.0, 10.0, 10.0, 10.0, 10.0, 10.0], weights='', freeze_layers=False, device='cuda:0', where='/public/home/jianght2023/50_pths_moe', base_path='/public_bme/data/jianght/datas/Pathology/class2', train_csv='/public_bme/data/jianght/datas/Pathology/class2/select_train.csv', valid_csv='/public_bme/data/jianght/datas/Pathology/class2/total_test2.csv', positive_csv='/public_bme/data/jianght/datas/Pathology/class2/total_pos_supp_yang.csv', negative_csv='/public_bme/data/jianght/datas/Pathology/class2/test.csv', head_idx=None, img_batch=2, arch='resnet34', res_weights='/public/home/jianght2023/pths2/resnet2/resnet.pth', res_savedir='/public/home/jianght2023/pths_resnet/50_0gong_lt_res50', multi_tasks=6, num_classes=[2, 3, 4, 2, 2, 2], loss_fns=['CELoss', 'CELoss', 'CELoss', 'CELoss', 'CELoss', 'CELoss'], tasks=['label', 'label', 'label', 'label', 'label', 'label'], long_tails=[False, False, False, False, False, False], alpha=[0.2, 0.2, 0.2, 0.2, 0.2, 0.2], cont=True, show_tasks=[0, 1, 2, 3, 4, 5], needpatch=False, backbone='vit_moe', reduction='none', logdir='weight1_ttt.txt', depth=12, gate_dim=None, num_experts_pertask=-1, local_rank=1, task_id=[0, 1, 2, 3, 4, 5])
+Namespace(epochs=300, batch_size=16, lr=0.0001, lr_res=0.0001, lrf=0.1, lr_head=[0.0003, 0.0003, 0.0003, 0.0003, 0.0003, 0.0003], loss_weights=[10.0, 10.0, 10.0, 10.0, 10.0, 10.0], weights='', freeze_layers=False, device='cuda:0', where='/public/home/jianght2023/50_pths_moe', base_path='/public_bme/data/jianght/datas/Pathology/class2', train_csv='/public_bme/data/jianght/datas/Pathology/class2/select_train.csv', valid_csv='/public_bme/data/jianght/datas/Pathology/class2/total_test2.csv', positive_csv='/public_bme/data/jianght/datas/Pathology/class2/total_pos_supp_yang.csv', negative_csv='/public_bme/data/jianght/datas/Pathology/class2/test.csv', head_idx=None, img_batch=2, arch='resnet34', res_weights='/public/home/jianght2023/pths2/resnet2/resnet.pth', res_savedir='/public/home/jianght2023/pths_resnet/50_0gong_lt_res50', multi_tasks=6, num_classes=[2, 3, 4, 2, 2, 2], loss_fns=['CELoss', 'CELoss', 'CELoss', 'CELoss', 'CELoss', 'CELoss'], tasks=['label', 'label', 'label', 'label', 'label', 'label'], long_tails=[False, False, False, False, False, False], alpha=[0.2, 0.2, 0.2, 0.2, 0.2, 0.2], cont=True, show_tasks=[0, 1, 2, 3, 4, 5], needpatch=False, backbone='vit_moe', reduction='none', logdir='weight1_ttt.txt', depth=12, gate_dim=None, num_experts_pertask=-1, local_rank=0, task_id=[0, 1, 2, 3, 4, 5])
+0
+----------------------------------------------------------------------------------------------------
+1
+----------------------------------------------------------------------------------------------------
+['label', 'highlabel', 'degree', 'fungus', 'cluecell', 'microbe']
+['label', 'highlabel', 'degree', 'fungus', 'cluecell', 'microbe']
+['label', 'highlabel', 'degree', 'fungus', 'cluecell', 'microbe']
+['label', 'highlabel', 'degree', 'fungus', 'cluecell', 'microbe']
+42744 9099
+42744 Using 8 dataloader workers every process9099
+
+Using 8 dataloader workers every process
+/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet34_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet34_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet34_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet34_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+embed_dim is 512----------------------------------------------------------------
+embed_dim is 512----------------------------------------------------------------
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+multigate,NoisyGate_VMoE
+torch.Size([1, 6, 512]) torch.Size([1, 1, 512])
+multigate,NoisyGate_VMoE
+torch.Size([1, 6, 512]) torch.Size([1, 1, 512])
+[False, False, False, False, False, False] 0
+(6, 512) embed_mean is None--------------
+[False, False, False, False, False, False] 0
+(6, 512) embed_mean is None--------------
+dsawww
+[47071335130192, 47071335130288, 47071335130384, 47071335130480, 47071335130576, 47071335130672, 47071335130768, 47071335130864, 47071335130960, 47071335131056, 47071335131152, 47071335131248]
+8 [{'params': <generator object Module.parameters at 0x2acfa6813ca0>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x2acfa6813d80>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x2acfa6813e60>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x2acfa683c040>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x2acfa683c120>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x2acfa683c200>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <filter object at 0x2acf9f3846d0>}, {'params': <generator object Module.parameters at 0x2acfa6813bc0>, 'lr': 0.0001, 'momentum': 0.9, 'weight_decay': 5e-06}]
+[True, True, True, True, True, True]
+dsawww
+[47018448692400, 47018448692496, 47018448692592, 47018448692688, 47018448692784, 47018448692880, 47018448692976, 47018448693072, 47018448693168, 47018448693264, 47018448693360, 47018448693456]
+8 [{'params': <generator object Module.parameters at 0x2ac3563a7ca0>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x2ac3563a7d80>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x2ac3563a7e60>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x2ac3563cc040>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x2ac3563cc120>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <generator object Module.parameters at 0x2ac3563cc200>, 'lr': 0.0003, 'momentum': 0.9, 'weight_decay': 5e-06}, {'params': <filter object at 0x2ac34ef3c700>}, {'params': <generator object Module.parameters at 0x2ac3563a7bc0>, 'lr': 0.0001, 'momentum': 0.9, 'weight_decay': 5e-06}]
+[True, True, True, True, True, True]
+  0%|          | 0/569 [00:00<?, ?it/s]  0%|          | 0/569 [00:00<?, ?it/s]  0%|          | 0/569 [00:09<?, ?it/s]
+Traceback (most recent call last):
+  File "/home_data/home/jianght2023/projects/cervical-cancer/train_distribute.py", line 288, in <module>
+    main(opt)
+  File "/home_data/home/jianght2023/projects/cervical-cancer/train_distribute.py", line 225, in main
+    val_loss, val_accs, _ = evaluate_multi_moe_dis(model=model,
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 115, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/projects/cervical-cancer/utils/utils.py", line 678, in evaluate_multi_moe_dis
+    preds = model(features,None)
+            ^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/parallel/distributed.py", line 1519, in forward
+    else self._run_ddp_forward(*inputs, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/parallel/distributed.py", line 1355, in _run_ddp_forward
+    return self.module(*inputs, **kwargs)  # type: ignore[index]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/projects/cervical-cancer/models/vit_res_model.py", line 68, in forward
+    preds = self.model(features,task_id)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/projects/cervical-cancer/models/vit_moe.py", line 477, in forward
+    x = self.forward_features(x,task_id)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/projects/cervical-cancer/models/vit_moe.py", line 451, in forward_features
+    x=blk(x, gate_inp, task_id, task_specific_feature,sem=sem)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/projects/cervical-cancer/models/vit_moe.py", line 240, in forward
+    x = x + self.drop_path(self.mlp_drop(self.mlp(self.norm2(x), gate_inp, task_id, task_specific_feature, sem)))
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/projects/cervical-cancer/models/custom_moe_layer.py", line 194, in forward
+    output = self.forward_moe(gate_inp=gate_inp, moe_inp=inp, task_id=task_id, sem=sem)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/projects/cervical-cancer/models/custom_moe_layer.py", line 304, in forward_moe
+    fwd = _fmoe_general_global_forward(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/fastmoe-1.1.0-py3.11-linux-x86_64.egg/fmoe/layers.py", line 44, in _fmoe_general_global_forward
+    ) = prepare_forward(gate, num_expert, world_size)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/fastmoe-1.1.0-py3.11-linux-x86_64.egg/fmoe/functions.py", line 63, in prepare_forward
+    pos, local_expert_count, global_expert_count = count_by_gate(gate, 
+                                                   ^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/fastmoe-1.1.0-py3.11-linux-x86_64.egg/fmoe/functions.py", line 34, in count_by_gate
+    local_expert_count = local_expert_count.long()
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: CUDA error: no kernel image is available for execution on the device
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+  0%|          | 0/569 [00:09<?, ?it/s]
+Traceback (most recent call last):
+  File "/home_data/home/jianght2023/projects/cervical-cancer/train_distribute.py", line 288, in <module>
+    main(opt)
+  File "/home_data/home/jianght2023/projects/cervical-cancer/train_distribute.py", line 225, in main
+    val_loss, val_accs, _ = evaluate_multi_moe_dis(model=model,
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 115, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/projects/cervical-cancer/utils/utils.py", line 678, in evaluate_multi_moe_dis
+    preds = model(features,None)
+            ^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/parallel/distributed.py", line 1519, in forward
+    else self._run_ddp_forward(*inputs, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/parallel/distributed.py", line 1355, in _run_ddp_forward
+    return self.module(*inputs, **kwargs)  # type: ignore[index]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/projects/cervical-cancer/models/vit_res_model.py", line 68, in forward
+    preds = self.model(features,task_id)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/projects/cervical-cancer/models/vit_moe.py", line 477, in forward
+    x = self.forward_features(x,task_id)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/projects/cervical-cancer/models/vit_moe.py", line 451, in forward_features
+    x=blk(x, gate_inp, task_id, task_specific_feature,sem=sem)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/projects/cervical-cancer/models/vit_moe.py", line 240, in forward
+    x = x + self.drop_path(self.mlp_drop(self.mlp(self.norm2(x), gate_inp, task_id, task_specific_feature, sem)))
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/projects/cervical-cancer/models/custom_moe_layer.py", line 194, in forward
+    output = self.forward_moe(gate_inp=gate_inp, moe_inp=inp, task_id=task_id, sem=sem)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/projects/cervical-cancer/models/custom_moe_layer.py", line 304, in forward_moe
+    fwd = _fmoe_general_global_forward(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/fastmoe-1.1.0-py3.11-linux-x86_64.egg/fmoe/layers.py", line 44, in _fmoe_general_global_forward
+    ) = prepare_forward(gate, num_expert, world_size)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/fastmoe-1.1.0-py3.11-linux-x86_64.egg/fmoe/functions.py", line 63, in prepare_forward
+    pos, local_expert_count, global_expert_count = count_by_gate(gate, 
+                                                   ^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/fastmoe-1.1.0-py3.11-linux-x86_64.egg/fmoe/functions.py", line 34, in count_by_gate
+    local_expert_count = local_expert_count.long()
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: CUDA error: no kernel image is available for execution on the device
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+[2023-12-17 19:41:32,043] torch.distributed.elastic.multiprocessing.api: [ERROR] failed (exitcode: 1) local_rank: 0 (pid: 157892) of binary: /home_data/home/jianght2023/miniconda3/envs/pytorch/bin/python
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/launch.py", line 196, in <module>
+    main()
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/launch.py", line 192, in main
+    launch(args)
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/launch.py", line 177, in launch
+    run(args)
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/run.py", line 797, in run
+    elastic_launch(
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/launcher/api.py", line 134, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home_data/home/jianght2023/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/distributed/launcher/api.py", line 264, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+train_distribute.py FAILED
+------------------------------------------------------------
+Failures:
+[1]:
+  time      : 2023-12-17_19:41:32
+  host      : bme_gpu09
+  rank      : 1 (local_rank: 1)
+  exitcode  : 1 (pid: 157898)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2023-12-17_19:41:32
+  host      : bme_gpu09
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 157892)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
+end on Sun Dec 17 19:41:32 CST 2023
