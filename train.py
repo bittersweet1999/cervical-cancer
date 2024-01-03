@@ -11,10 +11,10 @@ from torch.utils.tensorboard import SummaryWriter
 from torchvision import transforms
 
 from args import get_args
-from my_dataset import MultiDataSet
+from my_dataset import MultiDataSet,MultiDataSetMoE
 from models.vit_model_res18 import vit_base_patch16_224_in21k_multi_long_tail as create_model
-from models.vit_res_model import VitRes
-from utils.utils import  train_one_epoch_multi_longtail_weight,evaluate_multi_longtail_weight
+from models.vit_res_model import VitRes,VitResMoE
+from utils.utils import  train_one_epoch_multi_longtail_weight,evaluate_multi_longtail_weight,train_one_epoch_multi_moe
 # from models.TransMIL import TransMIL
 
 import pandas as pd
@@ -123,6 +123,9 @@ def main(args):
         model = TransMIL(n_classes=args.num_classes).to(device)
     elif args.backbone == 'vit_res':
         model = VitRes(embed_dim=512,num_classes=args.num_classes, has_logits=False,multy_tasks=args.multi_tasks,head_idx=args.head_idx,long_tail=args.long_tails,alpha=args.alpha).to(device)
+    elif args.backbone == 'vit_moe':
+        model = VitResMoE(embed_dim=512,num_classes=args.num_classes, has_logits=False,multi_tasks=args.multi_tasks,long_tail=args.long_tails,alpha=args.alpha).to(device)
+        print('dsawww')
 
     model = load_state(args,model)
     
@@ -163,16 +166,26 @@ def main(args):
 
         # train
 #
-            
-        train_loss, train_accs, train_error_list = train_one_epoch_multi_longtail_weight(model=model,
-                                                optimizer=optimizer,
-                                                data_loader=train_loader,
-                                                device=device,
-                                                epoch=epoch,
-                                                multi_tasks=args.multi_tasks,
-                                                istrain = istrain_list,
-                                                cont=args.cont
-                                                )
+        if args.backbone == 'vit_res':
+            train_loss, train_accs, train_error_list = train_one_epoch_multi_longtail_weight(model=model,
+                                                    optimizer=optimizer,
+                                                    data_loader=train_loader,
+                                                    device=device,
+                                                    epoch=epoch,
+                                                    multi_tasks=args.multi_tasks,
+                                                    istrain = istrain_list,
+                                                    cont=args.cont
+                                                    )
+        elif args.backbone == 'vit_moe':
+                train_loss, train_accs, train_error_list = train_one_epoch_multi_moe(model=model,
+                                            optimizer=optimizer,
+                                            data_loader=train_loader,
+                                            device=device,
+                                            epoch=epoch,
+                                            multi_tasks=args.multi_tasks,
+                                            istrain = istrain_list,
+                                            cont=args.cont
+                                            )
     #   
         scheduler.step()
 
@@ -191,25 +204,36 @@ def main(args):
         #                             )
         # print('val_acc',val_loss, val_accs,aucs, F1s, accuracys, sensitivitys, specificitys)
 ##            
-
-        val_loss, val_accs, _ = evaluate_multi_longtail_weight(model=model,
-                        data_loader=val_loader,
-                        device=device,
-                        epoch=epoch,
-                        multi_tasks=args.multi_tasks,
-                        name='val',
-                        cont=True
-                    )
+        if args.backbone == 'vit_res':
+            val_loss, val_accs, _ = evaluate_multi_longtail_weight(model=model,
+                            data_loader=val_loader,
+                            device=device,
+                            epoch=epoch,
+                            multi_tasks=args.multi_tasks,
+                            name='val',
+                            cont=True
+                        )
+        elif args.backbone == 'vit_moe':
+            val_loss, val_accs, _ = evaluate_multi_moe(model=model,
+                            data_loader=val_loader,
+                            device=device,
+                            epoch=epoch,
+                            multi_tasks=args.multi_tasks,
+                            name='val',
+                            cont=True
+                        )
         print('val_acc',val_loss, val_accs)
+        
+        
 
-        pos_res = evaluate_multi_longtail_weight(model=model,
-                                    data_loader=positive_loader,
-                                    device=device,
-                                    epoch=epoch,
-                                    multi_tasks=args.multi_tasks,
-                                    name='pos',
-                                    cont=args.cont
-                                )
+        # pos_res = evaluate_multi_longtail_weight(model=model,
+        #                             data_loader=positive_loader,
+        #                             device=device,
+        #                             epoch=epoch,
+        #                             multi_tasks=args.multi_tasks,
+        #                             name='pos',
+        #                             cont=args.cont
+        #                         )
         if args.cont:
             pos_loss, pos_accs, pos_error_list = pos_res
         else:
@@ -218,6 +242,7 @@ def main(args):
     
         if args.cont:
             index = args.tasks.index('label') if 'label' in args.tasks else -1
+            print(index)
             train_error_list_label = train_error_list[index]
             pos_error_list_label = pos_error_list[index]
                 
@@ -255,7 +280,7 @@ def main(args):
             #print('saving with mean')
             state_dicts={
                 'state_dict':model.state_dict(),
-                'embed_mean':model.model.embed_mean if args.backbone == 'vit_res' else model.embed_mean
+                'embed_mean':model.model.embed_mean if args.backbone in ('vit_res','vit_moe') else model.embed_mean
             }
             #print(model.embed_mean)
             torch.save(state_dicts,args.where+"/model-{}-{}.pth".format(args.head_idx,epoch))
